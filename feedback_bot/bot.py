@@ -23,6 +23,7 @@ def help_callback(update: Update, context: CallbackContext):
 def prepare_params(
     attachment: TelegramObject, at: str, reply_to_id: int, reply_to_message_id: int
 ) -> Optional[dict]:
+    """prepare params for bots' ``send_*``."""
     if isinstance(attachment, list):
         if len(attachment) > 0:
             attachment = attachment[0]
@@ -43,36 +44,43 @@ def prepare_params(
     return params
 
 
-def forward_and_reply_callback(update: Update, context: CallbackContext):
-    """Forward the user message to ``CHAT_ID``."""
+def reply_callback(update: Update, context: CallbackContext):
     message: Message = update.message
     reply_to_message: Optional[Message] = message.reply_to_message
 
     logger.info(message)
 
-    if message.reply_to_message is not None and update.effective_chat.id == CHAT_ID:
-        reply_to_id = reply_to_message.forward_from.id
-        reply_to_message_id = reply_to_message.message_id - 1
-
-        if message.text is not None:
-            context.bot.send_message(
-                chat_id=reply_to_id, text=message.text, reply_to_message_id=reply_to_message_id
-            )
-        if message.effective_attachment is not None:
-            for at in message.ATTACHMENT_TYPES:
-                attachment: Union[TelegramObject, List[TelegramObject]] = getattr(message, at)
-                if attachment is not None:
-
-                    params = prepare_params(attachment, at, reply_to_id, reply_to_message_id)
-                    if params is None:
-                        continue
-
-                    getattr(context.bot, f"send_{at}")(**params)
-
-                    break
-
+    if message.chat_id == CHAT_ID:
+        reply_to_id = message.from_user.id
     else:
-        message.forward(CHAT_ID)
+        reply_to_id = CHAT_ID
+    reply_to_message_id = reply_to_message.message_id - 1
+
+    if message.text is not None:
+        context.bot.send_message(
+            chat_id=reply_to_id, text=message.text, reply_to_message_id=reply_to_message_id
+        )
+    if message.effective_attachment is not None:
+        for at in message.ATTACHMENT_TYPES:
+            attachment: Union[TelegramObject, List[TelegramObject]] = getattr(message, at)
+            if attachment is not None:
+
+                params = prepare_params(attachment, at, reply_to_id, reply_to_message_id)
+                if params is None:
+                    continue
+
+                getattr(context.bot, f"send_{at}")(**params)
+
+                break
+
+
+def forward_callback(update: Update, context: CallbackContext):
+    """Forward the user message to ``CHAT_ID``."""
+    message: Message = update.message
+
+    logger.info(message)
+
+    message.forward(CHAT_ID)
 
 
 def error(update: Update, context: CallbackContext):
