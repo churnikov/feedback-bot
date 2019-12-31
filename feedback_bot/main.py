@@ -3,26 +3,35 @@
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from feedback_bot.bot import error, forward_callback, help_callback, reply_callback, start_callback
-from feedback_bot.config import TG_TOKEN
-
-updater = Updater(TG_TOKEN, use_context=True)
-
-# Get the dispatcher to register handlers
-dp = updater.dispatcher
+from feedback_bot.config import PROXY, TG_TOKEN
 
 
-# on different commands - answer in Telegram
-dp.add_handler(CommandHandler("start", start_callback))
-dp.add_handler(CommandHandler("help", help_callback))
+def main():
+    updater = Updater(
+        token=TG_TOKEN,
+        use_context=True,
+        request_kwargs={"proxy_url": PROXY} if PROXY is not None else None,
+    )
 
-# Messages handler
-dp.add_handler(MessageHandler(Filters.reply, reply_callback))
-dp.add_handler(MessageHandler(Filters.document, forward_callback))
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
 
-# log all errors
-dp.add_error_handler(error)
+    # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("start", start_callback))
+    dp.add_handler(CommandHandler("help", help_callback))
 
-# Start the Bot
-updater.start_polling()
+    # Messages handler
+    dp.add_handler(MessageHandler(Filters.reply, reply_callback))
+    dp.add_handler(MessageHandler(Filters.all, forward_callback))
 
-updater.idle()
+    # log all errors
+    dp.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
+
+    updater.idle()
+
+
+if __name__ == "__main__":
+    main()

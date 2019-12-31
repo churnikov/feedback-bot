@@ -11,6 +11,9 @@ loguru = "^0.3.2"
 
 [tool.poetry.dev-dependencies]
 
+[tool.poetry.scripts]
+run_feedback_bot = 'feedback_bot.main:main'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
