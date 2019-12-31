@@ -20,5 +20,5 @@
 Command to build and run docker container with bot:
 
 ```console
-docker build -t feedback_bot . && docker run --env TG_BOT_TOKEN=FILL_BOT_TOKEN --env TG_CHAT_ID=FILL_CHAT_ID --env COMMAND_REPLIES_PATH=/replies --env BOT_TIMEOUT=10 --env BOT_RETRIES=5 feedback_bot  
+docker build -t feedback_bot -f docker/Dockerfile . && docker run --env TG_BOT_TOKEN=FILL_BOT_TOKEN --env TG_CHAT_ID=FILL_CHAT_ID --env COMMAND_REPLIES_PATH=/replies --env BOT_TIMEOUT=10 --env BOT_RETRIES=5 feedback_bot  
 ``` 
