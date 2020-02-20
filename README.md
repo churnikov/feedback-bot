@@ -13,7 +13,7 @@
  
 
 1. Start bot and send to it message or add it to chat that you want messages to be.
-2. Then got the following url in browser: `https://api.telegram.org/botBOT_TOKEN:AAG0sqvgocHQXUeK24VjEvuJTm8Qb4gx3HI/getUpdates`
+2. Then got the following url in browser: `https://api.telegram.org/botBOT_TOKEN/getUpdates`
     - Don't forget to set bot api token!
 3. Find chat_id field. This will be one of environment variables you'll need to set.
 
