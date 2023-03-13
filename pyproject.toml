@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "feedback_bot"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Nikita Churikov <nikita@chur.ru>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-python-telegram-bot = "^12.2"
-loguru = "^0.3.2"
+python = "^3.10"
+python-telegram-bot = "^20.1"
+loguru = "^0.3"
 
 [tool.poetry.dev-dependencies]
 
