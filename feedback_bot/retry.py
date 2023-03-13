@@ -13,14 +13,14 @@ class Retry:
 
 
 class TelegramTimedOutRetry(Retry):
-    def retry(self):
+    async def retry(self):
         try:
-            return self.function(**self.function_kwargs)
+            return await self.function(**self.function_kwargs)
         except TimedOut as e:
             if self.retry_count > 0:
                 logger.warning("Got timeout. Retrying.")
                 self.retry_count -= 1
-                return self.retry()
+                return await self.retry()
             else:
                 logger.error(
                     "Raising 'TimedOut' exception, because maximum number of reties reached."

@@ -9,16 +9,16 @@ from feedback_bot.config import BOT_RETRIES, BOT_TIMEOUT, CHAT_ID, REPLIES
 from feedback_bot.retry import TelegramTimedOutRetry
 
 
-def start_callback(update: Update, context: CallbackContext):
+async def start_callback(update: Update, context: CallbackContext):
     """Send a message when the command ``/start`` is issued."""
     message = update.message
-    message.reply_markdown(REPLIES.start)
+    await message.reply_markdown(REPLIES.start)
 
 
-def help_callback(update: Update, context: CallbackContext):
+async def help_callback(update: Update, context: CallbackContext):
     """Send a message when the command ``/help`` is issued."""
     message = update.message
-    message.reply_markdown(REPLIES.help)
+    await message.reply_markdown(REPLIES.help)
 
 
 def prepare_params(attachment: TelegramObject, at: str, reply_to_id: int) -> Optional[dict]:
@@ -42,22 +42,22 @@ def prepare_params(attachment: TelegramObject, at: str, reply_to_id: int) -> Opt
     return params
 
 
-def reply_callback(update: Update, context: CallbackContext):
+async def reply_callback(update: Update, context: CallbackContext):
     message: Message = update.message
     logger.info(message)
 
     if message.chat_id == CHAT_ID:
-        reply_to_id = message.reply_to_message.forward_from.id
+        reply_to_id = message.reply_to_message.from_user.id
+        reply_to_message_id = message.reply_to_message.message_id
         if message.text is not None:
-            TelegramTimedOutRetry(
+            await TelegramTimedOutRetry(
                 retry_count=BOT_RETRIES,
                 function=context.bot.send_message,
                 function_kwargs={
                     "chat_id": reply_to_id,
                     "text": message.text,
-                    "from_chat_id": message.chat_id,
-                    "message_id": message.message_id,
-                    "timeout": BOT_TIMEOUT,
+                    "reply_to_message_id": reply_to_message_id,
+                    "pool_timeout": BOT_TIMEOUT,
                 },
             ).retry()
         if message.effective_attachment is not None:
@@ -69,8 +69,8 @@ def reply_callback(update: Update, context: CallbackContext):
                     if params is None:
                         continue
 
-                    params["timeout"] = BOT_TIMEOUT
-                    TelegramTimedOutRetry(
+                    params["pool_timeout"] = BOT_TIMEOUT
+                    await TelegramTimedOutRetry(
                         retry_count=BOT_RETRIES,
                         function=getattr(context.bot, f"send_{at}"),
                         function_kwargs=params,
@@ -78,36 +78,35 @@ def reply_callback(update: Update, context: CallbackContext):
 
                     break
     else:
-        TelegramTimedOutRetry(
+        await TelegramTimedOutRetry(
             retry_count=BOT_RETRIES,
             function=context.bot.forward_message,
             function_kwargs={
                 "chat_id": CHAT_ID,
-                "from_chat_id": message.chat_id,
-                "message_id": message.message_id,
-                "timeout": BOT_TIMEOUT,
+                "reply_to_message_id": message.message_id,
+                "pool_timeout": BOT_TIMEOUT,
             },
         ).retry()
 
 
-def forward_callback(update: Update, context: CallbackContext):
+async def forward_callback(update: Update, context: CallbackContext):
     """Forward the user message to ``CHAT_ID``."""
     message: Message = update.message
 
     logger.info(message)
 
-    TelegramTimedOutRetry(
+    await TelegramTimedOutRetry(
         retry_count=BOT_RETRIES,
         function=context.bot.forward_message,
         function_kwargs={
             "chat_id": CHAT_ID,
             "from_chat_id": message.chat_id,
             "message_id": message.message_id,
-            "timeout": BOT_TIMEOUT,
+            "pool_timeout": BOT_TIMEOUT,
         },
     ).retry()
 
 
-def error(update: Update, context: CallbackContext):
+async def error(update: Update, context: CallbackContext):
     """Log Errors caused by Updates."""
     logger.warning('Update "{}" caused error "{}"', update, context.error)
